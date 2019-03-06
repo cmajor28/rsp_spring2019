@@ -18,6 +18,8 @@ function [ overall_acc, class_acc ] = train_baseline_svm(trainDataset, trainLabe
     
     [~, validLabels] = max([score_low(:,2) score_normal(:,2) score_high(:,2)], [], 2);
     
+    validLabels = validLabels - 1; % Stupid Matlab indexing
+    
     overall_acc = mean(testLabels == validLabels);
     class_acc = [mean((testLabels == 0) == (validLabels == 0)); ...
                  mean((testLabels == 1) == (validLabels == 1)); ...
