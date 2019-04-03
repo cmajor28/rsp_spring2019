@@ -29,7 +29,7 @@ data = real(log10(fft(data, 2048)));
 %data = data - mean(data, 2);
 data = data ./ std(data, 0, 'all');
 
-labels = [ones(1, size(data, 2)/3), 2*ones(1, size(data, 2)/3), 3*ones(1, size(data, 2)/3)];
+labels = [zeros(1, size(data, 2)/3), ones(1, size(data, 2)/3), 2*ones(1, size(data, 2)/3)];
     
 
 n = length(labels); %  The number of data
@@ -101,4 +101,6 @@ hold on
 title('Training Error')
 plot(linspace(1, num_iterations, num_iterations/test_period), test_error)
 save('weights.mat', 'W_in', 'W_h','W_out')
+
+
 

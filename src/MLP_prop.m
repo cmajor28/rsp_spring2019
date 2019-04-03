@@ -1,4 +1,4 @@
-function [y, dW_in, dW_h, dW_out, mse] = MLP_prop(input, W_in, W_h, W_out, labels, eta)
+function [y_all, dW_in, dW_h, dW_out, mse] = MLP_prop(input, W_in, W_h, W_out, labels, eta)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -7,6 +7,7 @@ dW_h = zeros(size(W_h));
 dW_out = zeros(size(W_out));
 batch_size = size(input, 2);
 mse = zeros(1, batch_size);
+y_all = zeros(size(W_out, 2) ,batch_size);
 
 for j = 1:batch_size    %one batch at a time for classification
         v_in = input(:,j)' * W_in;
@@ -55,9 +56,8 @@ for j = 1:batch_size    %one batch at a time for classification
         delta = grad .* (delta * W_h(:, :, 1).');
         dW_in = dW_in + eta * (input(:,j) * delta);
         
-        y = y_out;
+        y_all(:,j) = y_out;
         
     end
     
 end
-
