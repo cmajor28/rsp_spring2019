@@ -108,6 +108,6 @@ for w = stftWindow
 end
 
 if save_run
-    name = sprintf('%f.mat', startTime);
-    save(name, results);
+name = sprintf('%f.mat', startTime);
+save(name, results);
 end
