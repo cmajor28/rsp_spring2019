@@ -4,9 +4,10 @@
 stftWindow = [{@taylorwin}];
 stftOverlap = [128];
 stftPoints = [256];
-stftSamples = [8];
-stftSamplesOverlap = [4];
-stftFeatures = [{'hog'}];
+stftSamples = [-1];
+stftSamplesOverlap = [32];
+stftFeatures = [{'none'}, {'pca4'}, {'pca8'}, {'pca16'}, {'statistical'}, {'hog'}];
+stftScale = [{'log'}, {'none'}];
 
-useCollected = 1;
-useOriginal = 0;
+useCollected = 0;
+useOriginal = 1;

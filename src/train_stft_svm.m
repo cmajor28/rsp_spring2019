@@ -1,47 +1,60 @@
 function [ overall_acc, class_acc, models ] = train_stft_svm(trainDatasetStft, trainLabels, testDatasetStft, testLabels, feature)
     
+    trainLabels_low    = trainLabels == 0;
+    trainLabels_normal = trainLabels == 1;
+    trainLabels_high   = trainLabels == 2;
+    testLabels_low    = testLabels == 0;
+    testLabels_normal = testLabels == 1;
+    testLabels_high   = testLabels == 2;
+    trainDatasetFeatures = [];
+    testDatasetFeatures = [];    
+
     % Generate SVM features
     switch feature
-        case 'none'
-            trainLabels_low    = [];
-            trainLabels_normal = [];
-            trainLabels_high   = [];
-            testLabels_low    = [];
-            testLabels_normal = [];
-            testLabels_high   = [];
-            trainDatasetFeatures = [];
-            testDatasetFeatures = [];
-            idxTrain = randperm(size(trainDatasetStft,1)*size(trainDatasetStft,3));
-            idxTest = randperm(size(testDatasetStft,1)*size(testDatasetStft,3));
-            k=1;
-            for i = 1:size(trainDatasetStft,1)
-                for j = 1:size(trainDatasetStft,3)
-                    trainDatasetFeatures(idxTrain(k),:) = squeeze(trainDatasetStft(i,:,j));
-                    k=k+1;
-                end
-            end
-            k=1;
-            for i = 1:size(testDatasetStft,1)
-                for j = 1:size(testDatasetStft,3)
-                    testDatasetFeatures(idxTest(k),:) = squeeze(testDatasetStft(i,:,j));
-                    k=k+1;
-                end
-            end
-        case 'hog'
-            trainLabels_low    = trainLabels == 0;
-            trainLabels_normal = trainLabels == 1;
-            trainLabels_high   = trainLabels == 2;
-            testLabels_low    = testLabels == 0;
-            testLabels_normal = testLabels == 1;
-            testLabels_high   = testLabels == 2;
-            trainDatasetFeatures = [];
-            testDatasetFeatures = [];
-            for i = 1:size(trainDatasetStft,1)
-                trainDatasetFeatures(i,:) = HOG(squeeze(trainDatasetStft(i,:,:)));
-            end
-            for i = 1:size(testDatasetStft,1)
-                testDatasetFeatures(i,:) = HOG(squeeze(testDatasetStft(i,:,:)));
-            end
+    case 'none'
+        for i = 1:size(trainDatasetStft,1)
+            data = squeeze(trainDatasetStft(i,:,:));
+            trainDatasetFeatures(i,:) = data(:);
+        end
+        for i = 1:size(testDatasetStft,1)
+            data = squeeze(testDatasetStft(i,:,:));
+            testDatasetFeatures(i,:) = data(:);
+        end      
+    case 'hog'
+        for i = 1:size(trainDatasetStft,1)
+            trainDatasetFeatures(i,:) = extract_hog_features(squeeze(trainDatasetStft(i,:,:)));
+        end
+        for i = 1:size(testDatasetStft,1)
+            testDatasetFeatures(i,:) = extract_hog_features(squeeze(testDatasetStft(i,:,:)));
+        end
+    case 'statistical'
+        for i = 1:size(trainDatasetStft,1)
+            trainDatasetFeatures(i,:) = extract_statistical_features(squeeze(trainDatasetStft(i,:,:)));
+        end
+        for i = 1:size(testDatasetStft,1)
+            testDatasetFeatures(i,:) = extract_statistical_features(squeeze(testDatasetStft(i,:,:)));
+        end
+    case 'pca4'
+        for i = 1:size(trainDatasetStft,1)
+            trainDatasetFeatures(i,:) = extract_pca_features(squeeze(trainDatasetStft(i,:,:)), 4);
+        end
+        for i = 1:size(testDatasetStft,1)
+            testDatasetFeatures(i,:) = extract_pca_features(squeeze(testDatasetStft(i,:,:)), 4);
+        end
+    case 'pca8'
+        for i = 1:size(trainDatasetStft,1)
+            trainDatasetFeatures(i,:) = extract_pca_features(squeeze(trainDatasetStft(i,:,:)), 8);
+        end
+        for i = 1:size(testDatasetStft,1)
+            testDatasetFeatures(i,:) = extract_pca_features(squeeze(testDatasetStft(i,:,:)), 8);
+        end
+    case 'pca16'
+        for i = 1:size(trainDatasetStft,1)
+            trainDatasetFeatures(i,:) = extract_pca_features(squeeze(trainDatasetStft(i,:,:)), 16);
+        end
+        for i = 1:size(testDatasetStft,1)
+            testDatasetFeatures(i,:) = extract_pca_features(squeeze(testDatasetStft(i,:,:)), 16);
+        end
     end
 
     % Train SVMs
