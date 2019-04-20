@@ -1,13 +1,20 @@
-%stftWindow = [{@rectwin} {@hamming} {@kaiser} {@taylorwin} {@chebwin}];
-%stftOverlap = [0 4 8 16 32 64 128 256 512];
-%stftPoints = [32 64 128 256 512 1024];
-stftWindow = [{@taylorwin}];
-stftOverlap = [128];
-stftPoints = [256];
-stftSamples = [-1];
-stftSamplesOverlap = [32];
-stftFeatures = [{'none'}, {'pca4'}, {'pca8'}, {'pca16'}, {'statistical'}, {'hog'}];
-stftScale = [{'log'}, {'none'}];
+stftWindow = [{@hamming} {@rectwin} {@taylorwin}];
+stftWindowSize = [16, 64, 256];
+stftWindowOverlap = [4, 16, 64];
+stftPoints = [32, 128, 512];
+stftSamples = [32, 64];
+stftSamplesOverlap = [8, 16];
+stftFeatures = [{'none'}, {'pca16'}, {'statistical'}, {'hog'}];
+stftScale = [{'log'}];
 
-useCollected = 0;
-useOriginal = 1;
+% stftWindow = [{@hamming}];
+% stftWindowSize = [32];
+% stftWindowOverlap = [8];
+% stftPoints = [32];
+% stftSamples = [128];
+% stftSamplesOverlap = [32];
+% stftFeatures = [{'hog'}];
+% stftScale = [{'log'}];
+
+useCollected = 1;
+useOriginal = 0;

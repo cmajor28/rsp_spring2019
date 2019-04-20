@@ -56,16 +56,25 @@ function [ overall_acc, class_acc, models ] = train_stft_svm(trainDatasetStft, t
             testDatasetFeatures(i,:) = extract_pca_features(squeeze(testDatasetStft(i,:,:)), 16);
         end
     end
+    
+%     mdl_low    = fitPosterior(fitcsvm(trainDatasetFeatures, trainLabels_low));
+%     mdl_normal = fitPosterior(fitcsvm(trainDatasetFeatures, trainLabels_normal));
+%     mdl_high   = fitPosterior(fitcsvm(trainDatasetFeatures, trainLabels_high));
+    
+    labels = [trainLabels_low, trainLabels_normal, trainLabels_high];
+    models = cell(1,3);
 
     % Train SVMs
-    mdl_low    = fitPosterior(fitcsvm(trainDatasetFeatures, trainLabels_low));
-    mdl_normal = fitPosterior(fitcsvm(trainDatasetFeatures, trainLabels_normal));
-    mdl_high   = fitPosterior(fitcsvm(trainDatasetFeatures, trainLabels_high));
+    parfor (i = [1,2,3],3)
+        models{i} = fitPosterior(fitcsvm(trainDatasetFeatures, labels(:,i)));
+    end
+    
+    models = struct('low', models{1}, 'normal', models{2}, 'high', models{3});
     
     % Run SVMs
-    [validLabels_low,    score_low]    = predict(mdl_low,    testDatasetFeatures);
-    [validLabels_normal, score_normal] = predict(mdl_normal, testDatasetFeatures);
-    [validLabels_high,   score_high]   = predict(mdl_high,   testDatasetFeatures);
+    [validLabels_low,    score_low]    = predict(models.('low'),    testDatasetFeatures);
+    [validLabels_normal, score_normal] = predict(models.('normal'), testDatasetFeatures);
+    [validLabels_high,   score_high]   = predict(models.('high'),   testDatasetFeatures);
     
     [~, validLabels] = max([score_low(:,2) score_normal(:,2) score_high(:,2)], [], 2);
     
@@ -85,7 +94,6 @@ function [ overall_acc, class_acc, models ] = train_stft_svm(trainDatasetStft, t
                             sum(testLabels == 2 & validLabels ~= 2), ...
                             sum(testLabels ~= 2 & validLabels ~= 2));
     class_acc = [low_acc, normal_acc, high_acc];
-    models = struct('low', mdl_low, 'normal', mdl_normal, 'high', mdl_high);
              
 end
 

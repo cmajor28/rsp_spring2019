@@ -2,13 +2,17 @@ close all;
 clear variables;
 clc;
 
-save_run = false;
+warning('on','all');
+
+save_run = true;
 
 startTime = now;
 
 if save_run
-    diary output.txt
-    diary on
+    warning('off','all');
+    diary off;
+    diary output.txt;
+    diary on;
 end
 
 fprintf('\n\nStarting Run: %f\n', startTime);
@@ -72,44 +76,58 @@ labels = labels(idx,:);
 
 results = struct();
 
-for w = stftWindow
-    for o = stftOverlap
-        for p = stftPoints
-            if o >= p
+for win = stftWindow
+    for wsize = stftWindowSize
+        if wsize == -1
+            wsize = size(dataset,2);
+        end
+        for woverlap = stftWindowOverlap
+            if woverlap >= wsize
                 continue
             end
-            datasetSpectrum = [];
-            for i = 1:size(dataset,1)
-                datasetSpectrum(i,:,:) = abs(spectrogram(dataset(i,:), window(w{1}, p), o, p));
-            end
-            for s = stftScale
-                switch s{1}
-                    case 'none'
-                        datasetSpectrumScale = datasetSpectrum;
-                    case 'log'
-                        datasetSpectrumScale = 20*log10(datasetSpectrum);
+            for points = stftPoints
+                datasetSpectrum = [];
+                for i = 1:size(dataset,1)
+                    datasetSpectrum(i,:,:) = abs(spectrogram(dataset(i,:), window(win{1}, wsize), woverlap, points));
                 end
-                for samp = stftSamples
-                    for sampo = stftSamplesOverlap
-                        if samp == -1
-                            samp = size(datasetSpectrumScale,2);
-                        end
-                        if sampo >= samp
-                            continue
-                        end
-                        [currDatasetSpectrum, currLabels] = split_stft(datasetSpectrumScale, labels, samp, sampo);
-                        trainDatasetSpectrum = currDatasetSpectrum(1:round(size(currLabels,1)*trainPercentage),:,:);
-                        trainLabels = currLabels(1:round(size(currLabels,1)*trainPercentage));
-                        testDatasetSpectrum = currDatasetSpectrum(round(size(currLabels,1)*trainPercentage+1):end,:,:);
-                        testLabels = currLabels(round(size(currLabels,1)*trainPercentage+1):end);
-                        for f = stftFeatures
-                            fprintf('\nRunning stft svm for w=%s, o=%d, p=%d, s=%s, samp=%d, sampo=%d, f=%s\n',char(w{1}),o,p,s{1},samp,sampo,f{1});
-                            [overall_acc, class_acc, models] = train_stft_svm(trainDatasetSpectrum, trainLabels, ...
-                                testDatasetSpectrum, testLabels, f{1});
-                            fprintf('Results: overall=%f, slow=%f normal=%f, high=%f\n', ...
-                                overall_acc, class_acc(1), class_acc(2), class_acc(3));
-                            currResult = struct('overall_acc', overall_acc, 'class_acc', class_acc, 'models', models);
-                            results.(sprintf('stft_svn_w_%s_o_%d_p_%d_s_%s_samp_%d_sampo_%d_f_%s',char(w{1}),o,p,s{1},samp,sampo,f{1})) = currResult;
+                for scale = stftScale
+                    switch scale{1}
+                        case 'none'
+                            datasetSpectrumScale = datasetSpectrum;
+                        case 'log'
+                            datasetSpectrumScale = 20*log10(datasetSpectrum);
+                    end
+                    for samp = stftSamples
+                        for sampoverlap = stftSamplesOverlap
+                            if samp == -1
+                                samp = size(datasetSpectrumScale,3);
+                            end
+                            if sampoverlap >= samp
+                                continue
+                            end
+                            [currDatasetSpectrum, currLabels] = split_stft(datasetSpectrumScale, labels, samp, sampoverlap);
+                            
+                            if isempty(currDatasetSpectrum)
+                                continue;
+                            end
+                            
+                            trainDatasetSpectrum = currDatasetSpectrum(1:round(size(currLabels,1)*trainPercentage),:,:);
+                            trainLabels = currLabels(1:round(size(currLabels,1)*trainPercentage));
+                            testDatasetSpectrum = currDatasetSpectrum(round(size(currLabels,1)*trainPercentage+1):end,:,:);
+                            testLabels = currLabels(round(size(currLabels,1)*trainPercentage+1):end);
+                            
+                            for feature = stftFeatures
+                                fprintf('\nRunning stft svm for window=%s, windowSize=%d windowOverlap=%d, stftPoints=%d, scale=%s, samples=%d, sampleOverlap=%d, feature=%s\n',...
+                                    char(win{1}), wsize, woverlap, points, scale{1}, samp, sampoverlap, feature{1});
+                                [overall_acc, class_acc, models] = train_stft_svm(trainDatasetSpectrum, trainLabels, ...
+                                    testDatasetSpectrum, testLabels, feature{1});
+                                fprintf('Results: overall=%f, slow=%f normal=%f, high=%f\n', ...
+                                    overall_acc, class_acc(1), class_acc(2), class_acc(3));
+                                currResult = struct('overall_acc', overall_acc, 'class_acc', class_acc);
+                                name = sprintf('stft_svn_%s_%d_%d_%d_%s_%d_%d_%s', ...
+                                    char(win{1}),wsize, woverlap, points, scale{1}, samp, sampoverlap, feature{1});
+                                results.(name) = currResult;
+                            end
                         end
                     end
                 end
@@ -119,6 +137,6 @@ for w = stftWindow
 end
 
 if save_run
-    name = sprintf('%f.mat', startTime);
-    save(name, results);
+    name = sprintf('%d.mat', round(startTime*10^6));
+    save(name, 'results');
 end
