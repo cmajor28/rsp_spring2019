@@ -11,6 +11,8 @@ y_all = zeros(size(W_out, 2) ,batch_size);
 num_hidden = size(dW_h, 3) +1;
 num_neurons = size(dW_h, 1);
 
+lambda = 0;%.001; % Regularization parameter
+
 for j = 1:batch_size    %one batch at a time for classification
         v_in = input(j,:) * W_in;
         y_in = tanh(v_in);
@@ -36,7 +38,7 @@ for j = 1:batch_size    %one batch at a time for classification
         expected = -1 * ones(1, 3);
         expected(labels(j)) = 1;
         
-        e = expected - classification;
+        e = (expected - classification) + lambda/(2*batch_size) * sum([W_in(:); W_h(:); W_out(:)].^2);
         mse(j) = mean((e).^2);
         
         % Backpropogation
